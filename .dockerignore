@@ -1,0 +1,11 @@
+.git
+.github
+.env
+.idea
+.vscode
+bin
+dist
+coverage.*
+*.exe
+*.log
+foryou.txt
