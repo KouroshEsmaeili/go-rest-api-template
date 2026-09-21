@@ -31,3 +31,9 @@ jobs:
 
       - name: Build
         run: go build ./...
+
+      - name: Validate Docker Compose
+        run: docker compose config
+
+      - name: Build Docker image
+        run: docker build -t go-rest-api-template:test .

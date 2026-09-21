@@ -1,6 +1,9 @@
 package config
 
-import "testing"
+import (
+	"os"
+	"testing"
+)
 
 func TestLoadUsesEnvironment(t *testing.T) {
 	t.Setenv("PORT", "9090")
@@ -30,4 +33,35 @@ func TestLoadRejectsEmptyDatabaseURL(t *testing.T) {
 	if _, err := Load(); err == nil {
 		t.Fatal("Load() error = nil, want empty database URL error")
 	}
+}
+
+func TestLoadRequiresDatabaseURLInProductionWhenUnset(t *testing.T) {
+	t.Setenv("APP_ENV", "production")
+	t.Setenv("PORT", "8080")
+	unsetEnv(t, "DATABASE_URL")
+
+	if _, err := Load(); err == nil || err.Error() != "DATABASE_URL must be set in production" {
+		t.Fatalf("Load() error = %v, want DATABASE_URL production requirement error", err)
+	}
+}
+
+func unsetEnv(t *testing.T, key string) {
+	t.Helper()
+
+	value, wasSet := os.LookupEnv(key)
+	if err := os.Unsetenv(key); err != nil {
+		t.Fatalf("unset %s: %v", key, err)
+	}
+
+	t.Cleanup(func() {
+		var err error
+		if wasSet {
+			err = os.Setenv(key, value)
+		} else {
+			err = os.Unsetenv(key)
+		}
+		if err != nil {
+			t.Errorf("restore %s: %v", key, err)
+		}
+	})
 }
